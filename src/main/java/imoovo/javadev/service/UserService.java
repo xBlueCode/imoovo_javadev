@@ -16,5 +16,7 @@ public interface UserService {
 	Optional<User> findUserById(Long id);
 	Optional<User> findUserByUsername(String username);
 	List<User> findAll();
+
+	Distance calcDistanceAndSave(String username, Double lat1, Double lon1, Double lat2, Double lon2);
 }
 
