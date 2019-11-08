@@ -2,6 +2,8 @@ package imoovo.javadev.controller;
 
 import imoovo.javadev.domain.User;
 import imoovo.javadev.service.UserServiceDb;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,8 @@ import java.util.Optional;
 @RequestMapping("/api/user")
 public class UserController {
 
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+
 	private UserServiceDb userService;
 
 	@Autowired
@@ -25,6 +29,8 @@ public class UserController {
 	public ResponseEntity<?> register(@RequestBody User user)
 	{
 		HashMap<String, Object> body = new HashMap<>();
+		logger.info(String.format("Registering the user %s, %s",
+			user.getUsername(), user.getRole()));
 		if (userService.findUserByUsername(user.getUsername()).isPresent())
 		{
 			body.put("error", "User already exist");
@@ -40,6 +46,7 @@ public class UserController {
 			User savedUser = userService.save(user);
 			body.put("action", "saved");
 			body.put("user", savedUser);
+			logger.info(String.format("The user %s had been saved", user.getUsername()));
 			return new ResponseEntity<>(body, HttpStatus.CREATED);
 		}
 	}
@@ -49,6 +56,7 @@ public class UserController {
 	{
 		HashMap<String, Object> body = new HashMap<>();
 		Optional<User> opUser = userService.findUserByUsername(username);
+		logger.info(String.format("Requesting list of users by %s", username));
 		if (!opUser.isPresent())
 		{
 			body.put("error", "User doesn't exist");
