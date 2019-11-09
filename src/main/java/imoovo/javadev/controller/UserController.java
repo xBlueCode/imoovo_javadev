@@ -1,6 +1,9 @@
 package imoovo.javadev.controller;
 
 import imoovo.javadev.domain.User;
+import imoovo.javadev.exception.UserExistException;
+import imoovo.javadev.exception.UserNotFoundException;
+import imoovo.javadev.exception.UserRoleRequiredException;
 import imoovo.javadev.service.UserServiceDb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,13 +35,11 @@ public class UserController {
 		logger.info(String.format("Registering the user %s, %s",
 			user.getUsername(), user.getRole()));
 		if (userService.findUserByUsername(user.getUsername()).isPresent())
-		{
-			body.put("error", "User already exist");
-			return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
-		}
+			throw new UserExistException(user.getUsername());
 		else if (!user.getRole().equals("admin") && !user.getRole().equals("user"))
 		{
 			body.put("error", "Role must be 'admin' or 'user'");
+			body.put("code", HttpStatus.BAD_REQUEST);
 			return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
 		}
 		else
@@ -58,17 +59,9 @@ public class UserController {
 		Optional<User> opUser = userService.findUserByUsername(username);
 		logger.info(String.format("Requesting list of users by %s", username));
 		if (!opUser.isPresent())
-		{
-			body.put("error", "User doesn't exist");
-			body.put("code", HttpStatus.BAD_REQUEST);
-			return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
-		}
+			throw new UserNotFoundException(username);
 		else if (!opUser.get().getRole().equals("admin"))
-		{
-			body.put("error", "User must be an admin to perform this operation");
-			body.put("code", HttpStatus.FORBIDDEN);
-			return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
-		}
+			throw new UserRoleRequiredException(username, "admin");
 		else
 		{
 			body.put("code", HttpStatus.OK);

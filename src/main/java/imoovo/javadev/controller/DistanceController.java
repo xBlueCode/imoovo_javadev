@@ -2,6 +2,8 @@ package imoovo.javadev.controller;
 
 import imoovo.javadev.domain.Distance;
 import imoovo.javadev.domain.User;
+import imoovo.javadev.exception.UserNotFoundException;
+import imoovo.javadev.exception.UserRoleRequiredException;
 import imoovo.javadev.service.UserServiceDb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,10 +58,7 @@ public class DistanceController {
 		Optional<User> opUser = userService.findUserByUsername(username);
 		HttpStatus code;
 		if (!opUser.isPresent())
-		{
-			code = HttpStatus.BAD_REQUEST;
-			body.put("error", String.format("The user %s doesn't exist", forName));
-		}
+			throw new UserNotFoundException(username);
 		else if (forName == null)
 		{
 			code = HttpStatus.OK;
@@ -68,17 +67,11 @@ public class DistanceController {
 			logger.info(String.format("History has been served for %s successfully", username));
 		}
 		else if (!opUser.get().getRole().equals("admin"))
-		{
-			code = HttpStatus.FORBIDDEN;
-			body.put("error", "User must be admin to perform this action");
-		}
+			throw new UserRoleRequiredException(username, "admin");
 		else{
 			Optional<User> targetedUser = userService.findUserByUsername(forName);
 			if (!targetedUser.isPresent())
-			{
-				code = HttpStatus.BAD_REQUEST;
-				body.put("error", String.format("The user %s doesn't exist", forName));
-			}
+				throw new UserNotFoundException(forName);
 			else
 			{
 				code = HttpStatus.OK;
